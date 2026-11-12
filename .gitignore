@@ -1,0 +1,33 @@
+# Credentials (the empty example is safe to commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Course data, labels, generated results and rebuildable indexes
+/corpus/
+/datas/
+/output/
+/index/
+/models/
+/RELEASE_FILES.sha256
+
+# Python environments and caches
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+*.log

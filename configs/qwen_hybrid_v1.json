@@ -1,0 +1,16 @@
+{
+  "agent": "agent.solution",
+  "method_type": "retrieval",
+  "method_label": "hybrid-qwen35-4b-v1",
+  "model_label": "Qwen/Qwen3.5-4B",
+  "api_provider": "siliconflow",
+  "retriever": "hybrid",
+  "answer_policy": "v1",
+  "hybrid": {
+    "weights": {"bm25": 0.5, "tfidf": 1.0, "lsa": 0.0},
+    "rrf_constant": 30,
+    "candidate_limit": 100,
+    "selection_split": "train",
+    "selection_queries": 100
+  }
+}

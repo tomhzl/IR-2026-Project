@@ -1,0 +1,11 @@
+{
+  "weights": {
+    "bm25": 0.5,
+    "tfidf": 1.0,
+    "lsa": 0.0
+  },
+  "rrf_constant": 30,
+  "candidate_limit": 100,
+  "selection_split": "train",
+  "selection_queries": 100
+}
