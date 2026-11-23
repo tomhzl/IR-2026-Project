@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from agent.answer import ModelAPIError, extract_percentage_answer, generate_answer, load_api_environment
@@ -83,6 +83,15 @@ class AnswerGenerationTests(unittest.TestCase):
                 with self.assertRaises(ModelAPIError) as raised:
                     generate_answer('Question', [], 'test-model')
         self.assertEqual(raised.exception.status_code, 402)
+
+    def test_connection_error_is_an_api_failure(self):
+        with patch.dict('os.environ', {'IR2026_API_KEY': 'test-key'}, clear=True):
+            with patch('agent.answer.request.urlopen',
+                       side_effect=URLError('simulated network failure')):
+                with self.assertRaises(ModelAPIError) as raised:
+                    generate_answer('Question', [], 'test-model')
+        self.assertIsNone(raised.exception.status_code)
+        self.assertIn('simulated network failure', str(raised.exception))
 
     def test_siliconflow_uses_its_key_and_disables_thinking(self):
         response = {'choices': [{'finish_reason': 'stop', 'message': {
@@ -230,6 +239,16 @@ class AnswerGenerationTests(unittest.TestCase):
             self.assertEqual(rejected['answer'], '')
             self.assertTrue(rejected['doc_ids'])
             self.assertEqual(failed.call_count, 1)
+            connection_tools = CorpusTools(Corpus(corpus_root), 'q1', method_type='retrieval')
+            with patch.object(solution, 'ROOT', root), patch.object(solution, 'INDEX_PATH', index):
+                with patch.object(solution, 'generate_answer', side_effect=ModelAPIError(
+                        None, 'Simulated network failure')):
+                    connection = solution.solve({'id': 'q1', 'question': 'Who founded Orion?'},
+                                                connection_tools, {'model': 'test-model'})
+            self.assertEqual(connection['status'], 'error')
+            self.assertIsNone(connection['api_status_code'])
+            self.assertEqual(connection['answer'], '')
+            self.assertIn('Simulated network failure', connection['error'])
 
 if __name__ == '__main__':
     unittest.main()
