@@ -84,7 +84,7 @@ def main(argv=None):
     p.add_argument('--method-label',help='Method name/version; defaults to the adapter module name')
     p.add_argument('--method-type',choices=['retrieval','agent'],default='retrieval',help='Fixed retrieval pipeline (default) or model-directed tool interaction')
     p.add_argument('--model-label',help='Actual model identifier, if used; required for --method-type agent')
-    p.add_argument('--api-provider',choices=['deepseek','siliconflow'],default='deepseek',help='Answer API provider; SiliconFlow uses SILICONFLOW_API_KEY')
+    p.add_argument('--api-provider',choices=['deepseek','siliconflow','dashscope'],default='deepseek',help='Answer API provider; SiliconFlow uses SILICONFLOW_API_KEY; DashScope uses IR2026_API_KEY and IR2026_API_BASE')
     p.add_argument('--retriever',choices=['bm25','hybrid'],default='bm25',help='Retrieval mode for agent.solution')
     p.add_argument('--hybrid-config',type=Path,help='Hybrid settings file; also accepts a preset containing a hybrid object')
     p.add_argument('--answer-policy',choices=['v1','verified'],default='v1',help='v1 is the selected baseline; verified enables experimental strict verification')
