@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "model_type": "pairwise_logistic_regression",
+  "folds": 5,
+  "c_grid": [0.001, 0.01, 0.1, 1.0, 10.0],
+  "max_iter": 2000,
+  "random_state": 2026,
+  "selection_metric": "gold_hit_at_10",
+  "primary_variant": "full",
+  "variants": {
+    "full": [
+      "bm25_present", "tfidf_present", "both_lanes",
+      "bm25_rrf", "tfidf_rrf", "weighted_rrf",
+      "bm25_score_ratio", "tfidf_score_ratio",
+      "query_coverage", "opening_coverage", "log_doc_length"
+    ],
+    "retrieval_only": [
+      "bm25_present", "tfidf_present", "both_lanes",
+      "bm25_rrf", "tfidf_rrf", "weighted_rrf",
+      "bm25_score_ratio", "tfidf_score_ratio"
+    ],
+    "text_only": [
+      "query_coverage", "opening_coverage", "log_doc_length"
+    ]
+  }
+}

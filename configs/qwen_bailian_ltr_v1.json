@@ -1,0 +1,24 @@
+{
+  "agent": "agent.solution",
+  "method_type": "retrieval",
+  "method_label": "hybrid-bailian-qwen35-flash-pairwise-ltr-v1",
+  "model_label": "qwen3.5-flash",
+  "api_provider": "dashscope",
+  "retriever": "hybrid",
+  "answer_policy": "v1",
+  "hybrid": {
+    "weights": {
+      "bm25": 0.5,
+      "tfidf": 1.0,
+      "lsa": 0.0
+    },
+    "rrf_constant": 30,
+    "candidate_limit": 100,
+    "selection_split": "train",
+    "selection_queries": 100,
+    "reranker": {
+      "type": "pairwise_ltr",
+      "model": "configs/pairwise_ltr_v1_model.json"
+    }
+  }
+}

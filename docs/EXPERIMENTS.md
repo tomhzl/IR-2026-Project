@@ -128,3 +128,42 @@ python3 benchmark_hybrid.py --split dev --output output/my_hybrid_dev_ablation
 ```
 
 `--retriever bm25` 可运行原基线。运行日志记录各路实际候选和分数、融合权重、最终排名及本地引用。
+
+## Train-only pairwise LTR reranking
+
+候选池诊断显示，当前 BM25 与 TF-IDF 各取前 100 的并集在 dev 覆盖 40/50 题的金标文档，而原 RRF 前 10 仅命中 16/50。其中 24 题属于“候选池已有金标、最终前 10 未命中”，只有 10 题完全不在候选池。因此 v1 改进选择重排，而不是优先增加 Dense Retrieval。
+
+重排器使用 train 100 题的同查询 pairwise 样本和 Logistic Regression。每个查询独立进入五折交叉验证的一个折，C 仅根据 train 交叉验证选择。最终冻结 C=0.001、随机种子 2026 和 11 个特征。模型与选参均未使用 dev 或 test 标签；dev 标签只在训练与选择完成后读取。
+
+| 方法 | Train CV Hit@10 | Dev Hit@10 |
+| --- | ---: | ---: |
+| 原 RRF | 45%（完整 train 基线） | 32% |
+| LTR 全特征 | 48% | 38% |
+| 仅检索排名/分数特征 | 44% | 36% |
+| 仅文本覆盖率/长度特征 | 36% | 38% |
+
+全特征模型在 dev 的 Hit@1、Hit@5、Hit@10 和 EvidenceRecall@10 分别为 12%、30%、38% 和 22.4738095%。相对原 RRF，逐题结果为 4 胜、1 负、45 平，净增 3 题。样本量较小，不声称统计显著；Hit@1 从 14% 降至 12%，作为回退一并保留。
+
+使用百炼 `qwen3.5-flash` 的完整 50 题 dev 运行中，19 题 `ok`、31 题 `no_answer`，无 API 错误、超时或预算耗尽。AnswerEM 为 18%，高于原 Hybrid 的 16%，但仍仅作辅助指标。输入和输出 Token 分别为 579267 和 2044，用量记录完整；总耗时 618.1182 秒，最大单题耗时 16.5898 秒。官方提交检查通过，引用原文字面匹配率为 100%。
+
+复现离线训练与评测：
+
+```bash
+python3 benchmark_hybrid.py --split train --output output/ltr_train_candidates_v1
+python3 benchmark_hybrid.py --split dev --output output/ltr_dev_candidates_v1
+
+python3 experiments/build_rerank_features.py --split train \
+  --rankings output/ltr_train_candidates_v1/rankings.jsonl \
+  --output output/ltr_train_features_v1
+python3 experiments/build_rerank_features.py --split dev \
+  --rankings output/ltr_dev_candidates_v1/rankings.jsonl \
+  --output output/ltr_dev_features_v1
+
+python3 experiments/train_pairwise_ltr.py \
+  --train-features output/ltr_train_features_v1/features.jsonl \
+  --dev-features output/ltr_dev_features_v1/features.jsonl \
+  --output output/pairwise_ltr_v1
+
+```
+
+正式检索复验使用 `configs/qwen_bailian_ltr_v1.json`。原 `qwen_hybrid_v1.json` 和 `qwen_bailian_v1.json` 不启用 LTR，仍用于复现原 RRF 基线。最终模型权重位于 `configs/pairwise_ltr_v1_model.json`，在线 traces 记录其 SHA256。上述实验均未使用 test 问题或标签进行训练、选参或配置选择。
