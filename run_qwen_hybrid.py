@@ -30,6 +30,10 @@ def main(argv=None):
     output = args.output or ROOT / 'output' / f'{preset_path.stem}_{args.split}'
     command = ['--split', args.split, '--output', str(output), '--hybrid-config', str(preset_path)]
     for name in ['agent', 'method_type', 'method_label', 'model_label', 'api_provider', 'retriever', 'answer_policy']:
+        if name not in preset:
+            continue
+        if name == 'api_provider' and preset['model_label'].startswith('local:'):
+            continue
         command.extend(['--' + name.replace('_', '-'), preset[name]])
     if args.limit is not None:
         command.extend(['--limit', str(args.limit)])

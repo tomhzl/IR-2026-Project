@@ -161,9 +161,9 @@ class AnswerGenerationTests(unittest.TestCase):
                 self.assertEqual(os.environ['DEEPSEEK_API_KEY'], 'environment-test-key')
                 self.assertNotIn('UNRELATED', os.environ)
 
-    def test_removed_local_model_is_rejected_before_api_request(self):
+    def test_missing_local_model_is_rejected_before_api_request(self):
         with patch('agent.answer.request.urlopen') as opened:
-            with self.assertRaisesRegex(ValueError, 'Local model inference has been removed'):
+            with self.assertRaisesRegex(ValueError, 'Missing local base model'):
                 generate_answer('Colour?', [{'id':'S1','doc_id':'d1','text':'A blue marker.'}],
                                 'local:removed-model')
         opened.assert_not_called()

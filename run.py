@@ -96,8 +96,6 @@ def main(argv=None):
     if args.limit is not None and args.limit<1:p.error('--limit must be positive')
     if args.method_label is not None and not args.method_label.strip():p.error('--method-label cannot be blank')
     if args.model_label is not None and not args.model_label.strip():p.error('--model-label cannot be blank')
-    if args.model_label and args.model_label.startswith('local:'):
-        p.error('Local model inference has been removed; use an API --model-label')
     if args.method_type=='agent' and not args.model_label:p.error('--method-type agent requires --model-label')
     if args.model_label=='offline-keyword-demo':p.error('Omit --model-label when no model is used')
     if (args.retriever!='bm25' or args.retrieval_only) and (args.agent!='agent.solution' or args.method_type!='retrieval'):
@@ -117,6 +115,8 @@ def main(argv=None):
     config.update({'method_type':args.method_type,'model':args.model_label,
                    'retriever':args.retriever,'retrieval_only':args.retrieval_only,
                    'api_provider':args.api_provider,'answer_policy':args.answer_policy})
+    if args.model_label and args.model_label.startswith('local:'):
+        config['api_provider']='local'
     retrieval_model=None
     if args.retriever=='hybrid':
         from agent.hybrid import INDEX_PATH as hybrid_path, load_config
@@ -136,7 +136,7 @@ def main(argv=None):
           'agent_module':args.agent,'model':';'.join(x for x in [retrieval_model,args.model_label] if x) or None,
           'retriever':args.retriever,'retrieval_only':args.retrieval_only,
           'answer_policy':args.answer_policy,
-          'api_provider':args.api_provider if args.model_label else None,
+          'api_provider':config['api_provider'] if args.model_label else None,
           'mode':'demo' if args.agent.startswith('examples.') else 'coursework',
           'split':args.split,'queries':len(questions),'limits':config['limits'],
           'python':sys.version.split()[0]}

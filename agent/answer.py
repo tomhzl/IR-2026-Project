@@ -86,10 +86,28 @@ def extract_percentage_answer(question, snippets):
 
 def generate_answer(question, snippets, model, proposed_answer=None, relaxed=False, verification_hint=None, answer_policy='v1'):
     """Generate or independently verify an answer from the same local excerpts."""
-    if model.startswith('local:'):
-        raise ValueError('Local model inference has been removed; use an API model label')
     base = os.environ.get('IR2026_API_BASE', DEFAULT_API_BASE).rstrip('/')
     messages = build_messages(question, snippets, proposed_answer, relaxed, verification_hint, answer_policy)
+    if model.startswith('local:'):
+        from agent.local_model import clean_local_text, generate_local
+        data = generate_local(
+            messages, model,
+            max_new_tokens=(768 if proposed_answer is None else 1024),
+        )
+        content = data['choices'][0]['message']['content']
+        data['choices'][0]['message']['content'] = clean_local_text(content)
+        response, input_tokens, output_tokens = parse_response(data)
+        chosen = response.get('evidence_ids')
+        if isinstance(chosen, list):
+            normalized = []
+            for item in chosen:
+                if type(item) is int and item >= 1:
+                    item = f'S{item}'
+                elif isinstance(item, str) and item.isdigit() and int(item) >= 1:
+                    item = f'S{item}'
+                normalized.append(item)
+            response['evidence_ids'] = normalized
+        return response, input_tokens, output_tokens
     key = os.environ.get('IR2026_API_KEY')
     hostname = urlparse(base).hostname
     siliconflow = hostname in {'api.siliconflow.cn', 'api.siliconflow.com'}

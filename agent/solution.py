@@ -175,7 +175,7 @@ def solve(question, tools, config):
                         {'doc_id': by_id[item]['doc_id'], 'text': by_id[item]['text']}
                         for item in dict.fromkeys(chosen)
                     ][:5]
-                token_notes = 'API-reported prompt and completion tokens.' if (
+                token_notes = 'Model-reported prompt and completion tokens.' if (
                     input_tokens is not None and output_tokens is not None
                 ) else 'API did not provide complete token usage.'
                 output = {'answer': answer, 'evidence_ids': chosen if isinstance(chosen, list) else []}
@@ -185,7 +185,7 @@ def solve(question, tools, config):
                 if isinstance(exc, ModelResponseError):
                     input_tokens, output_tokens = exc.input_tokens, exc.output_tokens
                     if input_tokens is not None and output_tokens is not None:
-                        token_notes = 'API-reported tokens for incomplete or invalid model response.'
+                        token_notes = 'Model-reported tokens for incomplete or invalid model response.'
                 output = {'error': f'{type(exc).__name__}: {exc}'}
             tools.record_retrieval(
                 stage='answer_generation',
@@ -238,7 +238,7 @@ def solve(question, tools, config):
                     else:
                         input_tokens = output_tokens = None
                     fallback_output = {'error': f'{type(exc).__name__}: {exc}'}
-                token_notes = ('API-reported tokens for generation and focused fallback.'
+                token_notes = ('Model-reported tokens for generation and focused fallback.'
                                if input_tokens is not None and output_tokens is not None
                                else 'Some model token usage was unavailable.')
                 tools.record_retrieval(
@@ -260,7 +260,7 @@ def solve(question, tools, config):
                 api_error = error
             if not supported:
                 answer = ''
-            token_notes = ('API-reported tokens for generation and v1 numbered-clue verification.'
+            token_notes = ('Model-reported tokens for generation and v1 numbered-clue verification.'
                            if input_tokens is not None and output_tokens is not None
                            else 'Some model token usage was unavailable.')
         if config.get('model') and answer and not api_error and answer_policy == 'verified':
@@ -283,7 +283,7 @@ def solve(question, tools, config):
                             for item in verified_ids]
             else:
                 answer = ''
-            token_notes = ('API-reported tokens for generation and source-grounded verification.'
+            token_notes = ('Model-reported tokens for generation and source-grounded verification.'
                            if input_tokens is not None and output_tokens is not None
                            else 'Some model token usage was unavailable.')
 

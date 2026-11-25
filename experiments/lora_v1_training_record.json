@@ -1,0 +1,43 @@
+{
+  "config": {
+    "base_model": "models/Qwen2.5-1.5B-Instruct",
+    "train_data": "output/sft_teacher_v1/sft_train.jsonl",
+    "output_dir": "output/lora_v1",
+    "training_split": "train",
+    "selection_split": "train",
+    "max_seq_length": 10752,
+    "num_train_epochs": 3,
+    "learning_rate": 0.0001,
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "warmup_steps": 3,
+    "weight_decay": 0.0,
+    "max_grad_norm": 1.0,
+    "lora_r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "seed": 2026
+  },
+  "resolved_output_dir": "/home/huangyuqiao/ir2026-work/IR-2026-Project/output/lora_v1",
+  "smoke_max_steps": null,
+  "training_split": "train",
+  "dev_or_test_used": false,
+  "train_data_sha256": "17c0930b5bfd6f0684df4bebe3a8e6b53c95868726ff3841618a11338777b7f7",
+  "dataset_samples": 74,
+  "samples_in_this_run": 74,
+  "sequence_length_mean": 7794.513513513513,
+  "sequence_length_max": 10470,
+  "train_runtime_seconds": 499.0833876505494,
+  "peak_gpu_memory_gb": 21.7119,
+  "adapter_sha256": {
+    "adapter_model.safetensors": "b61f0b974fe6446655a5dd1e19fb69008c72d0d5e8d553a337069f8dcb5a957a"
+  },
+  "metrics": {
+    "train_runtime": 498.7997,
+    "train_samples_per_second": 0.445,
+    "train_steps_per_second": 0.108,
+    "total_flos": 1.3084144188650496e+16,
+    "train_loss": 0.25725173844990357,
+    "epoch": 2.864864864864865
+  }
+}

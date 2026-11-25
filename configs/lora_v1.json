@@ -1,0 +1,19 @@
+{
+  "base_model": "models/Qwen2.5-1.5B-Instruct",
+  "train_data": "output/sft_teacher_v1/sft_train.jsonl",
+  "output_dir": "output/lora_v1",
+  "training_split": "train",
+  "selection_split": "train",
+  "max_seq_length": 10752,
+  "num_train_epochs": 3,
+  "learning_rate": 0.0001,
+  "per_device_train_batch_size": 1,
+  "gradient_accumulation_steps": 4,
+  "warmup_steps": 3,
+  "weight_decay": 0.0,
+  "max_grad_norm": 1.0,
+  "lora_r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.05,
+  "seed": 2026
+}
