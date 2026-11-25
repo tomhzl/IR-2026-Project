@@ -126,6 +126,9 @@ def main(argv=None):
         if config['hybrid']['weights']['lsa']>0:
             with np.load(hybrid_path,allow_pickle=False) as artifact:
                 retrieval_model=json.loads(str(artifact['metadata']))['model']
+        reranker=config['hybrid'].get('reranker')
+        if reranker:
+            retrieval_model='pairwise-ltr:' + reranker['model']
     questions=load_questions(ROOT/'datas'/f'{args.split}.jsonl')
     if args.limit is not None:questions=questions[:args.limit]
     info={'release':config['release'],'protocol_version':PROTOCOL_VERSION,

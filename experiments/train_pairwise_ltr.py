@@ -15,6 +15,7 @@ from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from agent.rerank import rank_row
 from ir2026 import read_jsonl, write_jsonl
 
 
@@ -97,26 +98,6 @@ def fit_model(
         'pairwise_queries': used_queries,
         'positive_negative_pairs': pair_count,
     }
-
-
-def rank_row(row, model):
-    if not row['candidates']:
-        return []
-
-    features = matrix(row, model['feature_names'])
-    mean = np.asarray(model['scaler_mean'])
-    scale = np.asarray(model['scaler_scale'])
-    coefficients = np.asarray(model['coefficients'])
-    scores = ((features - mean) / scale) @ coefficients
-
-    order = sorted(
-        zip(
-            (item['doc_id'] for item in row['candidates']),
-            scores,
-        ),
-        key=lambda item: (-item[1], item[0]),
-    )
-    return [doc_id for doc_id, _ in order]
 
 
 def evaluate(rows, labels, rankings):

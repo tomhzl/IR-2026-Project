@@ -41,6 +41,7 @@ def solve(question, tools, config):
         )
         is_hybrid = config.get('retriever', 'bm25') == 'hybrid'
         uses_lsa = False
+        uses_ltr = False
         if is_hybrid:
             from agent.hybrid import INDEX_PATH as HYBRID_PATH, load_config, load_index, fuse_rankings
             started = time.monotonic()
@@ -66,6 +67,41 @@ def solve(question, tools, config):
                 output={'hits': [{'doc_id': d, 'score': s} for d, s in ranked]},
                 doc_ids=doc_ids, elapsed_ms=(time.monotonic() - started) * 1000,
             )
+            reranker = settings.get('reranker')
+            if reranker:
+                if reranker.get('type') != 'pairwise_ltr':
+                    raise ValueError('Unsupported hybrid reranker')
+                from agent.rerank import load_model, rerank
+                started = time.monotonic()
+                model_path = Path(reranker['model'])
+                if not model_path.is_absolute():
+                    model_path = ROOT / model_path
+                model = load_model(model_path)
+                ranked = rerank(
+                    question, lanes, tools.corpus,
+                    settings, model, limit=10
+                )
+                doc_ids = [doc_id for doc_id, _ in ranked]
+                uses_ltr = True
+                tools.record_retrieval(
+                    stage='pairwise_ltr_rerank',
+                    arguments={
+                        'model': str(model_path),
+                        'model_sha256': hashlib.sha256(
+                            model_path.read_bytes()
+                        ).hexdigest(),
+                        'candidate_docs': len({
+                            d for hits in lanes.values() for d, _ in hits
+                        }),
+                        'top_k': 10,
+                        'training_split': model['training_split'],
+                    },
+                    output={'hits': [
+                        {'doc_id': d, 'score': s} for d, s in ranked
+                    ]},
+                    doc_ids=doc_ids,
+                    elapsed_ms=(time.monotonic() - started) * 1000,
+                )
             for doc_id in doc_ids:
                 if doc_id not in best_passage:
                     best_passage[doc_id] = (0, tools.corpus.text(doc_id)[:1800])
@@ -89,7 +125,9 @@ def solve(question, tools, config):
                               'model_output_tokens': None if uses_lsa else 0,
                               'token_notes': ('Local TF-IDF/LSA uses vocabulary features; language-model token counts '
                                               'are not applicable. No answer-generation API called.' if uses_lsa
-                                              else 'Sparse retrieval only; no model used.')}}
+                                              else ('Local lexical retrieval and pairwise LTR use no language-model tokens. '
+                                                    'No answer-generation API called.' if uses_ltr
+                                                    else 'Sparse retrieval only; no model used.'))}}
         snippets = collect_snippets(db, doc_ids, best_passage, question['question'], tools)
         by_id = {item['id']: item for item in snippets}
         evidence = ([{'doc_id': snippets[0]['doc_id'], 'text': snippets[0]['text']}]
