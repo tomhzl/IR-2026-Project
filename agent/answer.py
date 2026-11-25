@@ -41,8 +41,8 @@ class ModelResponseError(RuntimeError):
 
 
 class ModelAPIError(RuntimeError):
-    def __init__(self, status_code):
-        super().__init__(f'Model API returned HTTP {status_code}')
+    def __init__(self, status_code, message=None):
+        super().__init__(message if message is not None else f'Model API returned HTTP {status_code}')
         self.status_code = status_code
 
 
@@ -137,9 +137,9 @@ def generate_answer(question, snippets, model, proposed_answer=None, relaxed=Fal
                 continue
             raise ModelAPIError(exc.code) from exc
         except error.URLError as exc:
-            raise RuntimeError(f'Model API connection failed: {exc.reason}') from exc
+            raise ModelAPIError(None, f'Model API connection failed: {exc.reason}') from exc
         except TimeoutError as exc:
-            raise RuntimeError('Model API request timed out; token usage is unavailable') from exc
+            raise ModelAPIError(None, 'Model API request timed out; token usage is unavailable') from exc
     return parse_response(data)
 
 
