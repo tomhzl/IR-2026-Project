@@ -120,8 +120,12 @@ HTTP 429 最多重试两次，HTTP 401/402/403 会停止本轮并保存进度。
 完成索引和 API 配置后，可用一个命令依次执行正式运行、运行汇总和提交检查；train/dev 还会自动评测：
 
 ```bash
+# 原 SiliconFlow RRF 基线
 python3 run_full.py --split dev
-python3 run_full.py --split test
+
+# 冻结的百炼 + pairwise LTR 方案
+python3 run_full.py --split dev --preset configs/qwen_bailian_ltr_v1.json
+python3 run_full.py --split test --preset configs/qwen_bailian_ltr_v1.json
 ```
 
 默认输出目录与 `run_qwen_hybrid.py` 一致，也可指定 `--output`，续跑时添加 `--resume`。任一步骤失败都会停止，不会把失败运行声称为完整提交。`run_summary.json` 汇总状态、耗时和 Token 完整性；任一题 Token 缺失时总量记为 `null`，不会误记为 0。测试标签未公开，因此 test 只检查和汇总，不运行本地评测。

@@ -19,12 +19,16 @@ def run_step(command):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--split', choices=['train', 'dev', 'test'], default='dev')
+    parser.add_argument('--preset', type=Path,
+                        default=ROOT / 'configs' / 'qwen_hybrid_v1.json',
+                        help='Qwen hybrid preset; defaults to the frozen SiliconFlow v1 configuration')
     parser.add_argument('--output', type=Path)
     parser.add_argument('--resume', action='store_true')
     args = parser.parse_args(argv)
-    output = args.output or ROOT / 'output' / f'qwen_hybrid_v1_{args.split}'
+    output = args.output or ROOT / 'output' / f'{args.preset.stem}_{args.split}'
     python = sys.executable
-    retrieve = [python, ROOT / 'run_qwen_hybrid.py', '--split', args.split, '--output', output]
+    retrieve = [python, ROOT / 'run_qwen_hybrid.py', '--preset', args.preset,
+                '--split', args.split, '--output', output]
     if args.resume:
         retrieve.append('--resume')
     steps = [
