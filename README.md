@@ -131,6 +131,39 @@ HTTP 429 最多重试两次，HTTP 401/402/403 会停止本轮并保存进度。
 | `agent/answer_policy.py` | v1 编号线索题的原版核验 |
 | `agent/verification.py`、`verify_run.py` | 可选的严格核验实验 |
 
+### 可选：阿里百炼预设
+
+默认 `qwen_hybrid_v1.json` 仍使用 SiliconFlow。使用阿里百炼时，在 `.env` 中设置通用凭证和北京地域兼容地址；国际地域账号应使用其对应地址：
+
+```bash
+IR2026_API_KEY=你的百炼密钥
+IR2026_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
+```
+
+固定预设为 `configs/qwen_bailian_v1.json`，模型标识为 `qwen3.5-flash`，与 v1 使用相同的本地混合检索权重。百炼请求显式关闭思考模式；运行记录中的提供商记为 `dashscope`。
+
+```bash
+python3 run_qwen_hybrid.py --preset configs/qwen_bailian_v1.json --show-config
+python3 run_qwen_hybrid.py --preset configs/qwen_bailian_v1.json \
+  --split dev --limit 3 --output output/bailian_smoke
+```
+
+小样本检查须显式传入实际运行的问题文件，且不能添加 `--submission`：
+
+```bash
+python3 check_results.py --split dev --run-dir output/bailian_smoke \
+  --questions output/bailian_smoke/questions.jsonl
+```
+
+正式全量运行使用新输出目录，并继续通过官方全量检查和评测：
+
+```bash
+python3 run_qwen_hybrid.py --preset configs/qwen_bailian_v1.json \
+  --split dev --output output/qwen_bailian_v1_dev
+python3 check_results.py --split dev --run-dir output/qwen_bailian_v1_dev --submission
+python3 evaluate.py --split dev --run-dir output/qwen_bailian_v1_dev
+```
+
 ### 已保存的 v1 结果
 
 验证集 50 题的原始结果保存在 `output/siliconflow_qwen35_hybrid_dev_v1/`：

@@ -91,7 +91,10 @@ def generate_answer(question, snippets, model, proposed_answer=None, relaxed=Fal
     base = os.environ.get('IR2026_API_BASE', DEFAULT_API_BASE).rstrip('/')
     messages = build_messages(question, snippets, proposed_answer, relaxed, verification_hint, answer_policy)
     key = os.environ.get('IR2026_API_KEY')
-    siliconflow = urlparse(base).hostname in {'api.siliconflow.cn', 'api.siliconflow.com'}
+    hostname = urlparse(base).hostname
+    siliconflow = hostname in {'api.siliconflow.cn', 'api.siliconflow.com'}
+    dashscope = (hostname in {'dashscope.aliyuncs.com', 'dashscope-intl.aliyuncs.com'}
+                 or bool(hostname and hostname.endswith('.maas.aliyuncs.com')))
     if siliconflow:
         key = os.environ.get('SILICONFLOW_API_KEY') or key
     if not key and base == DEFAULT_API_BASE:
@@ -109,6 +112,9 @@ def generate_answer(question, snippets, model, proposed_answer=None, relaxed=Fal
         # DeepSeek enables thinking by default; its hidden reasoning can exhaust
         # max_tokens before a short JSON answer is produced.
         payload['thinking'] = {'type': 'disabled'}
+    if dashscope:
+        # Match the v1 fixed pipeline: answer directly without hidden reasoning.
+        payload['enable_thinking'] = False
     if siliconflow:
         verification_thinking = (answer_policy=='verified' and proposed_answer is not None
                                  and os.environ.get('IR2026_VERIFY_THINKING', '0') == '1')
