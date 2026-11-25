@@ -1,0 +1,23 @@
+{
+  "teacher_run": "output/qwen_bailian_ltr_v1_train_teacher",
+  "training_split": "train",
+  "selection_split": "train",
+  "dev_or_test_used": false,
+  "input_results": 100,
+  "exported_samples": 74,
+  "sample_types": {
+    "correct_answer": 32,
+    "justified_abstention": 42
+  },
+  "source_tools": {
+    "answer_generation": 73,
+    "answer_candidate_fallback": 1
+  },
+  "outcomes": {
+    "discard_abstention_with_gold_retrieved": 6,
+    "discard_wrong_answer": 20,
+    "exported": 74
+  },
+  "sft_sha256": "17c0930b5bfd6f0684df4bebe3a8e6b53c95868726ff3841618a11338777b7f7",
+  "target_format": "JSON answer and evidence_ids; tool outputs are inputs only"
+}
