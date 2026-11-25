@@ -11,12 +11,29 @@ class FullRunTests(unittest.TestCase):
         names = [call.args[0][1].name for call in step.call_args_list]
         self.assertEqual(names, ['run_qwen_hybrid.py', 'summarize_run.py',
                                  'check_results.py', 'evaluate.py'])
+        command = step.call_args_list[0].args[0]
+        preset = command[command.index('--preset') + 1]
+        self.assertTrue(str(preset).endswith('qwen_hybrid_v1.json'))
 
     @patch('run_full.run_step', return_value=0)
     def test_test_split_does_not_require_private_labels(self, step):
         self.assertEqual(run_full.main(['--split', 'test', '--output', 'output/test-test']), 0)
         names = [call.args[0][1].name for call in step.call_args_list]
         self.assertEqual(names, ['run_qwen_hybrid.py', 'summarize_run.py', 'check_results.py'])
+
+    @patch('run_full.run_step', return_value=0)
+    def test_custom_preset_is_forwarded_and_sets_default_output(self, step):
+        self.assertEqual(run_full.main([
+            '--split', 'test',
+            '--preset', 'configs/qwen_bailian_ltr_v1.json',
+        ]), 0)
+        command = step.call_args_list[0].args[0]
+        preset = command[command.index('--preset') + 1]
+        output = command[command.index('--output') + 1]
+        self.assertEqual(str(preset), 'configs/qwen_bailian_ltr_v1.json')
+        self.assertTrue(str(output).endswith('qwen_bailian_ltr_v1_test'))
+        names = [call.args[0][1].name for call in step.call_args_list]
+        self.assertNotIn('evaluate.py', names)
 
     @patch('run_full.run_step', return_value=2)
     def test_failed_step_stops_the_workflow(self, step):
